@@ -1,0 +1,10 @@
+For installation and usage, see pyqe.html in the doc directory.
+
+To quickly try it out without reading anything more:
+
+ 1) Go to where you unpacked pyqe
+
+ 2) ./pyqe --config pyqerc
+
+This will load the example config file so that you can get a feel for
+how it works without installing it.

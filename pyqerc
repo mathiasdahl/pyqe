@@ -1,0 +1,6 @@
+# Example of pyqe configuration file
+
+clock xclock &
+term xterm &
+emacs emacs &
+firefox firefox &

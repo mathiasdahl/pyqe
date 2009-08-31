@@ -1,0 +1,419 @@
+#!/usr/bin/env python
+# -*- python -*-
+
+"""
+pyqe.py - simple keyboard driven command launcher
+
+Copyright (C) 2005 Mathias Dahl
+
+Version: 0.2.1
+Keywords: keyboard, command, launcher
+Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
+Maintainer: Mathias Dahl
+URL: http://klibb.com/cgi-bin/wiki.pl/PyQe
+
+This is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+This is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA.
+
+Change history
+
+Date        Sign     Comment
+====        ====     =======
+2005-08-11  Mathias  Removed the suffixing of & and let the user handle
+                     that instead.
+                     Changed code to call destroy() before os.system().
+2005-08-15  Mathias  Added sorting of command list and command line
+                     option to disable it.
+2005-08-16  Mathias  Added expansion of commands starting with the same
+                     N characters when user press Tab.
+
+2005-10-22  Mathias  Added listen-mode for quicker invocations of GUI.
+
+2005-12-18  Mathias  Bug in listen mode made PyQe consume quite some CPU
+
+                     Added listen-mode command for reloading config file.
+                     
+                     The Tab-expansion now works... :)
+
+"""
+
+from Tkinter import *
+from optparse import OptionParser
+import os
+
+class PyQe:
+
+    def __init__(self, master):
+
+        self.master = master
+
+        # Startup position
+        self.xpos = options.xpos
+        self.ypos = options.ypos
+
+        if not self.xpos:
+            self.xpos = 0
+
+        if not self.ypos:
+            self.ypos = 0
+
+        self.master.geometry('+%s+%s' % (self.xpos, self.ypos))
+
+        self.frame = Frame(master)
+
+        self.frame.pack(fill = BOTH)
+
+        self.frame.master.title("PyQe 0.2.1")
+
+        self.eCommand = Entry(self.frame)
+
+        self.eCommand.bind('<KeyPress>', self.keyPress)
+        self.eCommand.bind('<KeyRelease>', self.keyRelease)
+
+        self.eCommand.pack(side = "top", fill = X)
+
+        listboxHeight = options.height
+
+        if not listboxHeight:
+            listboxHeight = 4
+
+        listboxWidth = options.width
+
+        if not listboxWidth:
+            listboxWidth = 40
+
+        self.listbox = Listbox(self.frame,
+                               selectmode = SINGLE,
+                               height = listboxHeight,
+                               width = listboxWidth)
+
+        self.listbox.pack(side = "top", fill = BOTH, expand = 1)
+
+        self.eCommand.focus_set()
+
+        self.matchCommand("")
+
+
+
+    def keyPress(self, event):
+
+        if event.keysym == "Down":
+
+            listbox_size = self.listbox.size()
+            listbox_maxpos = listbox_size - 1
+
+            if self.curr_item < listbox_maxpos:
+                self.curr_item = self.curr_item + 1
+            elif self.curr_item >= listbox_maxpos:
+                self.curr_item = 0
+
+            self.listbox.activate(self.curr_item)
+
+            self.listbox.selection_clear(0,END)
+            self.listbox.selection_set(self.curr_item, self.curr_item)
+
+            self.listbox.see(self.listbox.curselection())
+
+        elif event.keysym == "Up":
+
+            listbox_size = self.listbox.size()
+            listbox_maxpos = listbox_size - 1
+
+            if self.curr_item > 0:
+                self.curr_item = self.curr_item - 1
+            elif self.curr_item <= 0:
+                self.curr_item = listbox_maxpos
+
+            self.listbox.activate(self.curr_item)
+
+            self.listbox.selection_clear(0,END)
+            self.listbox.selection_set(self.curr_item, self.curr_item)
+
+            self.listbox.see(self.listbox.curselection())
+
+        elif event.keysym == "Escape":
+            self.master.destroy()
+
+        elif event.keysym == "Tab":
+
+            # Handle tab, send "break" back to stop the default action
+            # to happen. In the future, maybe do something cool with
+            # it...
+
+            commandName = self.eCommand.get()
+
+            # See if we can do an automatic match for commands with
+            # similar names
+            if commandName:
+
+                seekLongerMatch = 1
+                testStr = ""
+
+                testLen = len(commandName)
+
+                while seekLongerMatch == 1:
+
+                    testStr = matches[0]
+
+                    testStr = testStr[0:testLen]
+
+                    debugMessage("Test length: %i, Test string: %s" % (testLen,testStr))
+
+                    for match in matches:
+
+                        debugMessage("  current: " + match)
+
+                        matchSnippet = match[0:testLen]
+
+                        debugMessage("  snippet: " + matchSnippet)
+
+                        if not matchSnippet == testStr:
+                            seekLongerMatch = 0
+                            debugMessage("No match")
+
+                    if seekLongerMatch:
+                        testLen = testLen + 1
+
+                expandedCommand = matches[0][0:testLen - 1]
+                self.eCommand.delete(0, END)
+                self.eCommand.insert(0, expandedCommand)
+                debugMessage("New command: " + expandedCommand)
+
+            return "break"
+
+        elif event.keysym == "Return":
+            self.executeCommand()
+
+
+
+    def keyRelease(self, event):
+
+        self.curr_command = self.eCommand.get()
+
+        if not ((event.keysym == "Down") or (event.keysym == "Up")):
+            self.matchCommand(self.curr_command)
+
+
+
+    def matchCommand(self, commandName):
+
+        globals()["matches"] = []
+
+        for item in commands:
+
+            # If .find returns 0, it means the user input matches from
+            # the beginning of the command.
+
+            if (item[0].find(commandName) == 0) or (commandName == ""):
+                matches.append(item[0])
+
+        # Clear listbox and insert matches
+        self.listbox.delete(0,END)
+
+        for item in matches:
+            self.listbox.insert(END, item)
+
+        self.curr_item = 0
+
+        self.listbox.selection_clear(0,END)
+        self.listbox.selection_set(self.curr_item, self.curr_item)
+
+        debugMessage("Matches: %s" % self.listbox.size())
+
+        if self.listbox.size() == 1 and options.auto:
+            debugMessage("Single match, automatic execution")
+            self.executeCommand()
+
+
+
+    def executeCommand(self):
+        idx = self.listbox.curselection()
+        command = self.listbox.get(idx[0])
+
+        for item in commands:
+            if item[0] == command:
+                command = item[1].strip()
+
+        debugMessage("Command to execute: " + command)
+        self.master.destroy()
+        os.system(command)
+
+
+
+def readConfigFile():
+
+    # Did the user specify his own config file?
+    fileName = options.config
+
+    if fileName:
+        debugMessage("Using config file " + fileName)
+
+        try:
+            file = open(fileName)
+        except IOError:
+            raise "Could not find specified config file " + fileName + "."
+
+    else:
+        try:
+            file = open(os.getenv("HOME") + "/.pyqerc")
+        except IOError:
+            raise "Could not find config file ~/.pyqerc."
+
+    lines = file.readlines()
+
+    for line in lines:
+
+        # Skip comments and blank lines
+
+        line = line.strip()
+
+        if line.find("#") == -1 and line != "":
+            pos = line.find(" ")
+            commands.append([line[0:pos], line[pos+1:]])
+
+    debugMessage("Read %d %s" % (len(commands),"commands."))
+
+    # Shall we sort it?
+    if not options.nosort:
+        debugMessage("Sorting command list")
+        commands.sort()
+
+    file.close()
+
+
+
+def debugMessage(message):
+    if options.debug:
+        print message
+
+
+
+def openGUI():
+    debugMessage("Opening GUI...")
+    root.mainloop()
+
+
+
+def getPipe():
+
+    if not hasattr(os, "mkfifo"):
+        raise "mkfifo not supported. Listen mode not available."
+
+    # Did the user specify a pipe name?
+
+    home = os.getenv("HOME")
+
+    if home:
+
+        pipeName = home + "/.pyqepipe"
+
+        # First, check if it already exist
+        try:
+            pipe = open(pipeName, "r")
+            debugMessage("Pipe opened.")
+        except IOError:
+            debugMessage("Could not open pipe %s, creating new one..." % pipeName)
+            os.mkfifo(pipeName)
+            pipe = open(pipeName, "r")
+
+        return pipe
+
+    else:
+        raise "HOME variable not set. Could not created named pipe."
+
+# Main loop
+
+# Create parser
+parser = OptionParser()
+
+# Add argument list
+parser.add_option("-d", "--debug",  action="store_true",  dest="debug",  help="enable debug output")
+parser.add_option("-a", "--auto",   action="store_true",  dest="auto",   help="automatically execute single matches")
+parser.add_option("",   "--height", action="store",       dest="height", help="list box height (in text lines)")
+parser.add_option("",   "--width",  action="store",       dest="width",  help="list box width (in characters)")
+parser.add_option("-x", "--xpos",   action="store",       dest="xpos",   help="x startup position")
+parser.add_option("-y", "--ypos",   action="store",       dest="ypos",   help="y startup position")
+parser.add_option("",   "--nosort", action="store_true",  dest="nosort", help="do not sort command list")
+parser.add_option("-c", "--config", action="store",       dest="config", help="use another config file than ~/.pykerc")
+parser.add_option("-l", "--listen", action="store_true",  dest="listen", help="enable listening mode")
+
+# Parse
+(options, args) = parser.parse_args()
+
+debugMessage("Debug enabled")
+
+# Parse
+(options, args) = parser.parse_args()
+
+commands = []
+matches = []
+
+readConfigFile()
+
+# Listen mode or normal startup and run once-mode?
+if options.listen:
+
+    debugMessage("Listening...")
+
+    debugMessage("Checking for named pipe...")
+
+    keep_going = 1
+
+    root = Tk()
+
+    pyqe = PyQe(root)
+
+    # Listen-loop
+    while keep_going:
+
+        pipe = getPipe()
+    
+        debugMessage("Checking pipe...")
+        
+        data = pipe.read()
+
+        if data:
+
+            debugMessage("command: " + data)
+
+            if data.find("quit") == 0:
+                debugMessage("Exiting...")
+                keep_going = 0
+                pipe.close()
+
+            elif data.find("reload") == 0:
+                debugMessage("Reloading config...")
+                # Clear list and re-read config
+                commands = []
+                readConfigFile()
+                
+            elif data.find("open") == 0:
+                openGUI()
+                debugMessage("GUI done. Creating new root for next invocation...")
+                root = Tk()
+                pyqe = PyQe(root)
+                debugMessage("Done, GUI prepared.")
+
+            else:
+                debugMessage("Unknown command")
+
+    pipe.close()
+
+else:
+    debugMessage("Normal startup mode")
+    root = Tk()
+    pyqe = PyQe(root)
+    openGUI()
+

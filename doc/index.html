@@ -1,0 +1,439 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+  <head>
+    <link type="text/css" href="template.css" rel="stylesheet" media="screen" />
+    <title>PyQe - simple and easy-to-use command launcher</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="PyQe - simple and easy-to-use command launcher"/>
+
+    <meta name="keywords" content="command launcher, program launcher,
+    execute, keyboard shortcuts, python, windows, linux, utility,
+    free, gnu, GPL, gratis, libre"/>
+
+  </head>
+
+  <body>
+
+    <div id="container">
+
+      <div id="banner" >
+        <a href="http://klibb.com">
+          <img src="http://klibb.com/pics/muugallery.jpg"
+               alt="" width="160" height="71" border="0" /></a>
+     	<h1>Simple and easy-to-use command launcher</h1>
+      </div>
+
+      <div id="left">
+
+    	<h2>Links</h2>
+
+        <ul>
+          <li><a href="http://sourceforge.net/projects/pyqe/">Summary page</a></li>
+          <li><a href="#screenshots">Screenshots</a></li>
+          <li><a href="#download">Download</a></li>
+        </ul>
+
+      </div>
+
+      <div id="content">
+
+        <h2>What is PyQe?</h2>
+
+        <p>
+          PyQe (Python Quick Execute) is a small (&lt; 10 Kb) Python
+          program that uses Tkinter, Python's standard GUI toolkit, to
+          let the user launch (execute) commands and programs from a
+          pre-defined list of commands, just by entering a few
+          characters.
+        </p>
+
+        <p>
+          I wrote it because I could not find any really simple,
+          keyboard driven program launcher to use under GNU/Linux that
+          worked exactly as I wanted (I tried quite a few, but all of
+          them didd something that annoyed me or did not work the way
+          I wanted).
+        </p>
+
+        <p>
+          PyQe is released under the GNU General Public License (GPL),
+          which means that it is Free software (both free as in free
+          beer and free as in freedom).
+        </p>
+
+        <h2>Starting PyQe</h2>
+
+        <h3>Linux</h3>
+
+        <p>
+          The suggested usage is to tell your window manager to run
+          pyqe on a certain keypress. How this is done depends on the
+          window manager. If you cannot configure your window manager
+          to do it, a program like xbindkeys can be used.
+        </p>
+
+        <p>
+          pyqe comes with a sheband (#!) at the beginning of the
+          file. By default it uses this line to start:
+        </p>
+
+        <pre>
+          #!/usr/bin/env python
+        </pre>
+
+        <p>
+          If that does not work on your set up you have to change it.
+        </p>
+
+        <p>
+          If for some reason it does not work to execute pyqe
+          directly, or if you do not want to make the script
+          executable, start it in this way:
+        </p>
+
+        <pre>
+          python path_to_pyqe/pyqe
+        </pre>
+
+        <h3>Windows</h3>
+
+        <p>
+          In Windows, the easiest way to start pyqe is creating a
+          shortcut on your desktop containing the following "command
+          line":
+        </p>
+
+        <pre>
+          PATH_TO_PYTHON\pythonw.exe PATH_TO_PYQE\pyqe
+        </pre>
+
+        <p>
+          Next, bind a keyboard combination to this shortcut by
+          placing the cursor in the Shortcut Key field and pressing a
+          keyboard combination, for example CTRL + SHIFT + P.
+        </p>
+
+        <p>
+          Another way to do it is to place the same shortcut directly
+          under the Start Menu (you have to use the Classic look if
+          you are running Windows XP), giving the shortcut a unique
+          character as the first character of the file name, for
+          example a hyphen (-). This way, all yu have to do is press
+          the Windows key (this brings up the Start Menu), and press
+          the hyphen (note you must release the Windows key for the
+          Start Menu to open, and before you press -).
+        </p>
+
+        <h3>General</h3>
+
+        <p>
+          If you want to speed the startup a bit, you can add the -S
+          option to the interpreter.
+        </p>
+
+        <h3>Command line options</h3>
+
+        <p>
+          From now and on I will assume you start pyqe as a executable
+          script.
+        </p>
+
+        <p>
+          pyqe understands a couple of command line options. To see
+          them, do this:
+        </p>
+
+        <pre>
+          pyqe --help
+        </pre>
+
+        <p>
+          When you have tested it for a while you might want PyQe to
+          execute single matches automatically (so that you do not
+          need to press enter when there is only one match left):
+        </p>
+
+        <pre>
+          pyqe --auto
+        </pre>
+
+        <p>
+          If you want to control the number of visible items in the
+          listbox (default is 4):
+        </p>
+
+        <pre>
+          pyqe --height 10
+        </pre>
+
+        <p>
+          The width, in character, of the listbox (default is 40):
+        </p>
+
+        <pre>
+          pyqe --width 20
+        </pre>
+
+        <p>
+          The default startup position of PyQe is 0,0. You can change this:
+        </p>
+
+        <pre>
+          pyqe --xpos 100 --ypos 100
+        </pre>
+
+        <p>
+          By default, PyQe sorts the commands list. If you do not want
+          this:
+        </p>
+
+        <pre>
+          pyqe --nosort
+        </pre>
+
+        <p>
+          You can turn on debug (you must run pyqe.py from a terminal
+          to see the output) if something seems wrong:
+        </p>
+
+        <pre>
+          pyqe --debug
+        </pre>
+
+        <p>
+          If pyqe does not start fast enough for you, consider using
+          the --listen parameter:
+        </p>
+
+        <pre>
+          pyqe --listen
+        </pre>
+
+        <p>
+          This will start pyqe in the background, listening for
+          commands in a named pipe called ".pyqepipe" in your home
+          diretory. The current commands are "quit", "open" and
+          "reload"and can be sent to the program in the following way:
+        </p>
+
+        <pre>
+          echo open > ~/.pyqepipe
+        </pre>
+
+        <h4>Listen-mode commands</h4>
+
+        <ul>
+          <li>
+            <b>open</b> - Open the GUI for executing a command. When a
+            command is executed or the GUI closed by pressing Escape,
+            it will go back to listen mode again. This is probably the
+            command you will use the most.
+          </li>
+
+          <li>
+            <b>reload</b> - Reload configuration file.
+          </li>
+
+          <li>
+            <b>quit</b> - Quick the listening PyQe process.
+          </li>
+
+        </ul>
+
+        <h2>Configuring PyQe</h2>
+
+        <p>
+          Configuring PyQe is easy. Create a text file called .pyqerc
+          and place it in your HOME directory (pyqe will concatenate
+          the value of your HOME environment variable with "/.pyqerc"
+          to find it and, yes, it works on Windows too as long as you
+          create the environment variable HOME and set it to he
+          directory where .pyqerc is placed) and place each command on
+          its own line, in the following format:
+        </p>
+
+        <pre>
+          command_name command
+        </pre>
+
+        <p>
+          command_name is the name that will be visible in the GUI and
+          matched against when you type on your keyboard.
+        </p>
+
+        <p>
+          command is the actual command to be executed (using Python's
+          os.system() call).
+        </p>
+
+        <p>
+          Examples of a valid configuration file under GNU/Linux:
+        </p>
+
+        <pre>
+          # My own .pyqerc file
+
+          xmms xmms &
+          rx rxvt &
+          emacs emacs &
+          firefox /home/mathias/pgm/firefox/firefox &
+          gnome-terminal /usr/bin/gnome-terminal &
+        </pre>
+
+        <p>
+          Blank lines and lines starting with # are ignored.
+        </p>
+
+        <p>
+          On GNU/Linux, an ampersand (&) is needed to the command so
+          that it is executed asynchronously (or else pyqe will not
+          quit until the executed application is closed. It will hide
+          the GUI though so it is not visible.)
+        </p>
+
+        <p>
+          Examples of a valid configuration file under Windows:
+        </p>
+
+        <pre>
+          # My own .pyqerc file
+
+          notepad start notepad
+          google start http://www.google.com
+          firefox start firefox
+        </pre>
+
+        <p>
+          (The start command on Windows is very useful and I recommend using
+          it for starting programs.)
+        </p>
+
+        <p>
+          You might wonder why I did not shorten the commands above,
+          using for example "em" instead of "emacs", but that is
+          usually not necessary as long as you do not have many
+          commands beginning in the same letters. When you use pyqe
+          with the configuration above, just typing "e" will be enough
+          to run the emacs command. You name your commands as you
+          wish, this works for me.
+        </p>
+
+        <h2>Usage</h2>
+
+        <h3>Basic</h3>
+
+        <p>
+          After starting pyqe, you will be presented with the full
+          list of pre-defined commands in a list box, and the cursor
+          will be waiting for input in an entry field. You can now
+          either select a command using the arrow keys (up/down) and
+          pressing return, or start typing the first letters of the
+          command you want to run, which will make the list of
+          commands smaller. After executing the command with return
+          (or when using the auto option, when only one item is in the
+          list), pyqe will close. Pressing escape will also close the
+          program.
+        </p>
+
+        <p>
+          <b>Note:</b> the command names are compared to user input in a case
+          sensitive way, so "my_program" and "My_program" are different.
+        </p>
+
+        <h3>Tab expansion</h3>
+
+        <p>
+          If two or more currently matching commands have several
+          leading characters in common, the user can expand the
+          command to the longest common string. For example, if you
+          have two commands starting with "play_" (let's say
+          "play_music" and "play_movies"), first type "p" and, asuming
+          you have no other command starting with "p", you can now
+          press the Tab key to expand the entered command to
+          "play_". It is easier to use than it is to explain, so try
+          it out.
+        </p>
+
+        <a name="screenshots"><h2>Screenshots</h2></a>
+
+        <p>
+          Main window showing first four commands at startup:
+        </p>
+
+        <center>
+          <img src="pyqe_main.png" alt="Main gui"></img>
+        </center>
+
+        <p>
+          Showing matches after user input:
+        </p>
+
+        <center>
+          <img src="pyqe_matches_1.png" alt="showing matches"></img>
+        </center>
+
+        <p>
+          User can use the arrow keys to select any of the matches to execute:
+        </p>
+
+        <center>
+          <img src="pyqe_matches_2.png" alt="showing more matches"></img>
+        </center>
+
+        <p>
+          Example of how the expand command (pressing Tab)
+          works. These are two matches that have common leading
+          characters:
+        </p>
+
+        <center>
+          <img src="pyqe_expand_before.png" alt="showing more matches"></img>
+        </center>
+
+        <p>
+          After pressing Tab:
+        </p>
+
+        <center>
+          <img src="pyqe_expand_after.png" alt="showing more matches"></img>
+        </center>
+
+        <a name="download"><h2>Download</h2></a>
+
+        <p>
+          <a href="http://sourceforge.net/project/showfiles.php?group_id=145886">Download PyQe</a>.
+        </p>
+
+        <h2>Todo</h2>
+
+        <p>
+          <ul>
+            <li>Nothing yet.
+            </li>
+          </ul>
+        </p>
+
+        <h2>Feedback</h2>
+
+        <p>
+          Mail me at &lt;mathias . dahl at gmail . com&gt; or use
+          the <a
+          href="http://sourceforge.net/forum/?group_id=145886">forums</a>
+          or
+          <a
+             href="http://sourceforge.net/tracker/?group_id=145886">trackers</a>.
+        </p>
+
+      </div>
+
+      <div id="footer">
+
+      </div>
+
+    </div>
+
+  </body>
+
+</html>
